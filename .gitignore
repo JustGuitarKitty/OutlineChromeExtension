@@ -1,0 +1,25 @@
+# Build artifacts
+dist/
+OutlineProxy-Windows/
+*.zip
+
+# Compiled binaries
+*.exe
+native-host/outline-proxy-host
+
+# Generated icons (keep SVG source)
+extension/icons/*.png
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Downloaded dependencies
+sslocal*
