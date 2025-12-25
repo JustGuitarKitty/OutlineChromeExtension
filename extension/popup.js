@@ -13,7 +13,6 @@ class OutlinePopup {
       errorMsg: document.getElementById('errorMsg'),
       nativeWarning: document.getElementById('nativeWarning'),
       serverInfo: document.getElementById('serverInfo'),
-      installLink: document.getElementById('installLink'),
       extId: document.getElementById('extId')
     };
 
@@ -41,7 +40,7 @@ class OutlinePopup {
       this.nativeHostAvailable = response?.nativeHostAvailable ?? true;
 
       if (response?.serverHost) {
-        this.elements.serverInfo.textContent = `Сервер: ${response.serverHost}`;
+        this.elements.serverInfo.textContent = `Server: ${response.serverHost}`;
       }
     } catch (e) {
       console.error('Failed to get status:', e);
@@ -59,9 +58,9 @@ class OutlinePopup {
       this.hideError();
     });
 
-    this.elements.installLink.addEventListener('click', (e) => {
+    document.getElementById('checkUpdates')?.addEventListener('click', (e) => {
       e.preventDefault();
-      chrome.tabs.create({ url: chrome.runtime.getURL('install.html') });
+      chrome.tabs.create({ url: 'https://github.com/JustGuitarKitty/OutlineChromeExtension/releases' });
     });
   }
 
@@ -71,17 +70,17 @@ class OutlinePopup {
     if (!this.isConnected) {
       // Connect
       if (!accessKey) {
-        this.showError('Введите Outline Access Key');
+        this.showError('Enter Outline Access Key');
         return;
       }
 
       if (!accessKey.startsWith('ss://')) {
-        this.showError('Неверный формат ключа. Должен начинаться с ss://');
+        this.showError('Invalid key format. Must start with ss://');
         return;
       }
 
       this.elements.toggleBtn.disabled = true;
-      this.elements.toggleBtn.textContent = 'Подключение...';
+      this.elements.toggleBtn.textContent = 'Connecting...';
 
       try {
         const response = await chrome.runtime.sendMessage({
@@ -91,26 +90,26 @@ class OutlinePopup {
 
         if (response.success) {
           this.isConnected = true;
-          this.elements.serverInfo.textContent = `Сервер: ${response.serverHost}`;
+          this.elements.serverInfo.textContent = `Server: ${response.serverHost}`;
           chrome.storage.local.set({ serverHost: response.serverHost });
         } else {
-          this.showError(response.error || 'Не удалось подключиться');
+          this.showError(response.error || 'Connection failed');
           this.nativeHostAvailable = response.nativeHostAvailable ?? true;
         }
       } catch (e) {
-        this.showError('Ошибка: ' + e.message);
+        this.showError('Error: ' + e.message);
       }
     } else {
       // Disconnect
       this.elements.toggleBtn.disabled = true;
-      this.elements.toggleBtn.textContent = 'Отключение...';
+      this.elements.toggleBtn.textContent = 'Disconnecting...';
 
       try {
         await chrome.runtime.sendMessage({ type: 'DISCONNECT' });
         this.isConnected = false;
         this.elements.serverInfo.textContent = '';
       } catch (e) {
-        this.showError('Ошибка: ' + e.message);
+        this.showError('Error: ' + e.message);
       }
     }
 
@@ -122,15 +121,15 @@ class OutlinePopup {
 
     if (this.isConnected) {
       this.elements.statusDot.classList.add('connected');
-      this.elements.statusText.textContent = 'Подключено';
-      this.elements.toggleBtn.textContent = 'Отключиться';
+      this.elements.statusText.textContent = 'Connected';
+      this.elements.toggleBtn.textContent = 'Disconnect';
       this.elements.toggleBtn.classList.remove('connect');
       this.elements.toggleBtn.classList.add('disconnect');
       this.elements.accessKey.disabled = true;
     } else {
       this.elements.statusDot.classList.remove('connected');
-      this.elements.statusText.textContent = 'Отключено';
-      this.elements.toggleBtn.textContent = 'Подключиться';
+      this.elements.statusText.textContent = 'Disconnected';
+      this.elements.toggleBtn.textContent = 'Connect';
       this.elements.toggleBtn.classList.remove('disconnect');
       this.elements.toggleBtn.classList.add('connect');
       this.elements.accessKey.disabled = false;

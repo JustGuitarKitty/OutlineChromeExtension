@@ -1,7 +1,6 @@
 <#
 .SYNOPSIS
-    Собирает всё в один самораспаковывающийся архив
-    Пользователь скачивает один файл, запускает - и всё работает
+    Builds everything into a single installer archive
 #>
 
 $ErrorActionPreference = "Stop"

@@ -99,7 +99,7 @@ function parseAccessKey(accessKey) {
     return { method, password, host, port };
   } catch (e) {
     console.error('Parse error:', e);
-    throw new Error('Неверный формат Outline ключа');
+    throw new Error('Invalid Outline key format');
   }
 }
 

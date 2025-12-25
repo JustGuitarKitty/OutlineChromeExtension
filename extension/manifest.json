@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Outline Proxy",
   "version": "1.0.0",
-  "description": "Простой VPN для браузера через Outline/Shadowsocks",
+  "description": "Browser VPN via Outline/Shadowsocks",
   "permissions": [
     "proxy",
     "storage",

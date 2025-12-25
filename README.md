@@ -1,108 +1,49 @@
 # Outline Proxy - Chrome Extension
 
-Расширение Chrome для подключения к Outline VPN серверам.
-
-## Установка
-
-### Windows
-
-1. **Скачай** `OutlineProxy-Windows.zip` из [Releases](../../releases)
-2. **Распакуй** в любую папку
-3. **Запусти** `setup.bat`
-4. В Chrome: `chrome://extensions` → Developer mode → Load unpacked → выбери папку `extension`
-5. Скопируй Extension ID из Chrome и вставь в скрипт
-6. Вставь `ss://...` ключ → Подключиться
-
-### Linux / macOS
-
-```bash
-./install.sh
-```
-
-### Удаление
-
-Windows: запусти `uninstall.bat` или `.\uninstall.ps1`
-Linux/macOS: `./uninstall.sh`
-
----
-
-## Сборка
-
-```powershell
-# Windows - собрать установщик
-.\build-installer.ps1
-
-# Разработка
-.\install.ps1      # Windows
-./install.sh       # Linux/macOS
-```
-
----
-
-## Как это работает
-
-```
-Chrome Extension
-      │
-      ▼ (Native Messaging)
-Native Host + sslocal
-      │
-      ▼ (Shadowsocks)
-Outline VPN Server
-```
-
-## Требования
-
-- Windows 10/11, Linux или macOS
-- Chrome, Edge или Brave
-- Outline Access Key (`ss://...`)
-
-## Лицензия
-
-MIT
-
----
-
-# English
-
-# Outline Proxy - Chrome Extension
-
-Chrome extension for connecting to Outline VPN servers.
+Chrome extension for connecting to Outline VPN servers. Fully open source — built from source.
 
 ## Installation
 
 ### Windows
 
-1. **Download** `OutlineProxy-Windows.zip` from [Releases](../../releases)
-2. **Extract** to any folder
-3. **Run** `setup.bat`
-4. In Chrome: `chrome://extensions` → Developer mode → Load unpacked → select `extension` folder
-5. Copy Extension ID from Chrome and paste into the script
-6. Paste your `ss://...` access key → Connect
+1. [Download ZIP](../../archive/refs/heads/main.zip) and extract
+2. Open PowerShell in the extracted folder (where `install.ps1` is located)
+3. Run `powershell -ExecutionPolicy Bypass -File .\install.ps1`
+
+The script will automatically:
+- Request administrator privileges
+- Download and build the native host
+- Download sslocal (shadowsocks-rust)
+- Register the native messaging host
+
+After running:
+1. Chrome → `chrome://extensions` → Developer mode → Load unpacked → select `extension` folder
+2. Copy Extension ID (shown at the bottom of the extension card) and enter when the script asks
 
 ### Linux / macOS
 
-```bash
-./install.sh
-```
+1. [Download ZIP](../../archive/refs/heads/main.zip) and extract
+2. Open terminal in the project folder
+3. Run `sh ./install.sh`
 
 ### Uninstall
 
-Windows: run `uninstall.bat` or `.\uninstall.ps1`
-Linux/macOS: `./uninstall.sh`
+```bash
+# Windows
+powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
+
+# Linux/macOS
+sh ./uninstall.sh
+```
 
 ---
 
-## Building
+## Requirements
 
-```powershell
-# Windows - build installer
-.\build-installer.ps1
-
-# Development
-.\install.ps1      # Windows
-./install.sh       # Linux/macOS
-```
+- **Windows:** PowerShell 5.1+, Go 1.21+
+- **Linux/macOS:** bash, Go 1.21+, curl
+- Chrome, Edge or Brave
+- Outline Access Key (`ss://...`)
 
 ---
 
@@ -118,11 +59,7 @@ Native Host + sslocal
 Outline VPN Server
 ```
 
-## Requirements
-
-- Windows 10/11, Linux or macOS
-- Chrome, Edge or Brave
-- Outline Access Key (`ss://...`)
+The extension uses Native Messaging to communicate with a local host that runs sslocal (shadowsocks-rust) and proxies traffic through the Outline server.
 
 ## License
 

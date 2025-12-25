@@ -1,8 +1,13 @@
-#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Outline Proxy - Uninstaller
 #>
+
+# Self-elevation: request admin rights automatically
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Start-Process powershell.exe "-NoExit -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    exit
+}
 
 $ErrorActionPreference = "SilentlyContinue"
 
@@ -13,6 +18,18 @@ function Write-Skip { param($msg) Write-Host "  [SKIP] $msg" -ForegroundColor Gr
 Write-Host "`n  Outline Proxy - Uninstaller`n" -ForegroundColor Magenta
 
 $installDir = "$env:LOCALAPPDATA\OutlineProxy"
+
+# ============================================
+# Stop running processes
+# ============================================
+Write-Step "Stopping running processes..."
+
+$killed = $false
+Get-Process -Name "sslocal" -ErrorAction SilentlyContinue | Stop-Process -Force
+if ($?) { $killed = $true; Write-OK "Stopped sslocal" }
+Get-Process -Name "outline-proxy-host" -ErrorAction SilentlyContinue | Stop-Process -Force
+if ($?) { $killed = $true; Write-OK "Stopped outline-proxy-host" }
+if (-not $killed) { Write-Skip "No processes running" }
 
 # ============================================
 # Remove installed files
@@ -54,5 +71,7 @@ Write-Host "`n  ========================================" -ForegroundColor Green
 Write-Host "       Uninstall Complete!" -ForegroundColor Green
 Write-Host "  ========================================`n" -ForegroundColor Green
 
-Write-Host "  Don't forget to remove the extension from:" -ForegroundColor Yellow
-Write-Host "  chrome://extensions`n" -ForegroundColor Cyan
+Write-Host "  Remove the extension manually from the opened page" -ForegroundColor Yellow
+Write-Host ""
+
+Start-Process "chrome://extensions"

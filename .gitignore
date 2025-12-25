@@ -7,9 +7,6 @@ OutlineProxy-Windows/
 *.exe
 native-host/outline-proxy-host
 
-# Generated icons (keep SVG source)
-extension/icons/*.png
-
 # OS files
 .DS_Store
 Thumbs.db

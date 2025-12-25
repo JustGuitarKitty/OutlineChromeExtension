@@ -1,11 +1,15 @@
-#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Outline Proxy - One-click installer
 .DESCRIPTION
-    Устанавливает Chrome расширение для VPN только в браузере.
-    Игры идут напрямую, YouTube через VPN.
+    Installs Chrome extension for browser VPN.
 #>
+
+# Self-elevation: request admin rights automatically
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Start-Process powershell.exe "-NoExit -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    exit
+}
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
@@ -25,7 +29,7 @@ $banner = @"
  | |__| | |_| | |_| | | | | |  __/ | |   | | | (_) >  <| |_| |
   \____/ \__,_|\__|_|_|_| |_|\___| |_|   |_|  \___/_/\_\\__, |
                                                          __/ |
-   VPN for browser only. Games go direct.               |___/
+                                                        |___/
 
 "@
 
@@ -126,6 +130,14 @@ Pop-Location
 # Step 4: Install files
 # ============================================
 Write-Step "Installing to $installDir..."
+
+# Kill running processes
+$killed = $false
+Get-Process -Name "sslocal" -ErrorAction SilentlyContinue | Stop-Process -Force
+if ($?) { $killed = $true }
+Get-Process -Name "outline-proxy-host" -ErrorAction SilentlyContinue | Stop-Process -Force
+if ($?) { $killed = $true }
+if ($killed) { Write-OK "Stopped running processes" }
 
 # Create install directory
 if (-not (Test-Path $installDir)) {
@@ -248,35 +260,51 @@ try {
 }
 
 # ============================================
-# Step 7: Summary
+# Step 7: Install extension and get ID
 # ============================================
 Write-Host "`n"
 Write-Host "  ========================================" -ForegroundColor Green
-Write-Host "       Installation Complete!" -ForegroundColor Green
+Write-Host "       Files installed!" -ForegroundColor Green
 Write-Host "  ========================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Installed files:" -ForegroundColor Yellow
-Write-Host "    $installDir\$hostExeName" -ForegroundColor Gray
-Write-Host "    $installDir\$ssLocalExeName" -ForegroundColor Gray
+Write-Host "  Now install the extension:" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "  Next steps:" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "  1. Open Chrome and go to:" -ForegroundColor White
-Write-Host "     chrome://extensions" -ForegroundColor Cyan
-Write-Host ""
+Write-Host "  1. Chrome will open chrome://extensions" -ForegroundColor White
 Write-Host "  2. Enable 'Developer mode' (top right)" -ForegroundColor White
-Write-Host ""
 Write-Host "  3. Click 'Load unpacked' and select:" -ForegroundColor White
 Write-Host "     $extensionDir" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "  4. Click the extension icon, paste your" -ForegroundColor White
-Write-Host "     Outline key (ss://...) and connect!" -ForegroundColor White
+Write-Host "  4. Copy the Extension ID (shown below extension name)" -ForegroundColor White
 Write-Host ""
 
-# Ask to open Chrome
-$openChrome = Read-Host "Open chrome://extensions now? (Y/n)"
-if ($openChrome -ne "n" -and $openChrome -ne "N") {
-    Start-Process "chrome" "chrome://extensions"
+Read-Host "Press Enter to open Chrome"
+Start-Process "chrome://extensions"
+
+Write-Host ""
+$extensionId = Read-Host "Paste Extension ID here"
+
+if ($extensionId -match "^[a-z]{32}$") {
+    # Update manifest with correct extension ID
+    $manifest = @{
+        name = "com.outline.proxy"
+        description = "Outline Proxy Native Host"
+        path = (Join-Path $installDir $hostExeName)
+        type = "stdio"
+        allowed_origins = @("chrome-extension://$extensionId/")
+    }
+    $manifest | ConvertTo-Json -Depth 10 | Set-Content $manifestPath -Encoding UTF8
+    Write-OK "Extension ID registered: $extensionId"
+
+    Write-Host "`n"
+    Write-Host "  ========================================" -ForegroundColor Green
+    Write-Host "       Installation Complete!" -ForegroundColor Green
+    Write-Host "  ========================================" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "  Restart Chrome, then paste your" -ForegroundColor White
+    Write-Host "  Outline key (ss://...) and connect!" -ForegroundColor White
+} else {
+    Write-Err "Invalid Extension ID format"
+    Write-Host "  You can add it manually later to:" -ForegroundColor Yellow
+    Write-Host "  $manifestPath" -ForegroundColor Cyan
 }
 
-Write-Host "`nDone! Enjoy YouTube without lags in games :)" -ForegroundColor Magenta
+Write-Host "`nDone!" -ForegroundColor Magenta
